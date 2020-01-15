@@ -13,10 +13,10 @@ def load_image(name, colorkey=None):
     return image
 
 
-def draw_text(text, coor):
-    font = pygame.font.Font(None, 30)
+def draw_text(text, coor, size=25, color='black'):
+    font = pygame.font.Font('data/Fixedsys.ttf', size)
     text_coord = coor[0]
-    string_rendered = font.render(text, 5, pygame.Color('black'))
+    string_rendered = font.render(text, 5, pygame.Color(color))
     intro_rect = string_rendered.get_rect()
     intro_rect.top = text_coord
     intro_rect.x = coor[1]
@@ -45,36 +45,13 @@ def terminate():
 
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self, group, num=0):
+    def __init__(self, group, num, image_name, coor):
         super().__init__(group)
         self.num = num
-        # много ифаем, чтобы не создавать 1000 классов и подклассов
-        if self.num == 'level1.txt':
-            self.image = load_image("level1.png")
-        elif self.num == 'level2.txt':
-            self.image = load_image("level2.png")
-        elif self.num == 'level3.txt':
-            self.image = load_image("level3.png")
-        elif self.num == 'menu.png':
-            self.image = load_image(self.num)
-        else:
-            self.image = load_image("quit.png")
+        self.image = load_image(image_name)
         self.rect = self.image.get_rect()
-        if self.num == 'level1.txt':
-            self.rect.y = 310
-            self.rect.x = 18
-        elif self.num == 'level2.txt':
-            self.rect.x = 218
-            self.rect.y = 310
-        elif self.num == 'level3.txt':
-            self.rect.y = 310
-            self.rect.x = 413
-        elif self.num == 'menu.png':
-            self.rect.y = 8
-            self.rect.x = 8
-        else:
-            self.rect.y = 520
-            self.rect.x = 160
+        self.rect.x = coor[0]
+        self.rect.y = coor[1]
 
     def update(self, *args):
         global LEVEL
@@ -98,19 +75,19 @@ class Board:
             self.left = 115
             self.top = -25
             self.cell_size = 75
-            draw_text('Уровень 1', (15, 450))
+            draw_text('Уровень 1', (10, 450))
         elif filename == 'data/level2.txt':
             # 6 на 6
             self.left = 125
             self.top = -25
             self.cell_size = 60
-            draw_text('Уровень 2', (15, 450))
+            draw_text('Уровень 2', (10, 450))
         elif filename == 'data/level3.txt':
             # 7 на 7
             self.left = 100
             self.top = -20
             self.cell_size = 60
-            draw_text('Уровень 3', (15, 450))
+            draw_text('Уровень 3', (10, 450))
 
     def render(self):
         for i in range(self.width):
@@ -136,13 +113,25 @@ class Board:
 
 def start_screen():
     global LEVEL
-    fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
-    screen.blit(fon, (0, 0))
+    # fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
+    # screen.blit(fon, (0, 0))
+    screen.fill(pygame.Color('#d5ffd9'))
+    draw_text('Палатки', (63, 48), 58, 'red')
+    draw_text('и', (63, 286), 58)
+    draw_text('деревья', (63, 350), 58, '#00ce05')
+    draw_text('made by mashaandreeva', (565, 203), 22)
+    rules = ['Вам нужно расположить по одной палатке рядом с ', 'каждым деревом. Она должна соприкасаться с ним по ',
+             'вертикали или горизонтали. Цифры показывают число ', 'палаток в строке или колонке. Палатки не могут ',
+             'соприкасаться даже по диагонали.']
+    x = 150
+    for el in rules:
+        draw_text(el, (x, 20), 23)
+        x += 25
     sprites_start_screen = pygame.sprite.Group()
-    Button(sprites_start_screen, 'level1.txt')
-    Button(sprites_start_screen, 'level2.txt')
-    Button(sprites_start_screen, 'level3.txt')
-    Button(sprites_start_screen)
+    Button(sprites_start_screen, 'level1.txt', "level1.png", (18, 310))
+    Button(sprites_start_screen, 'level2.txt', "level2.png", (217, 310))
+    Button(sprites_start_screen, 'level3.txt', "level3.png", (413, 310))
+    Button(sprites_start_screen, 0, "quit.png", (160, 520))
     sprites_start_screen.draw(screen)
     while True:
         for event in pygame.event.get():
@@ -160,8 +149,8 @@ def start_screen():
 def game():
     global LEVEL, running
     all_sprites = pygame.sprite.Group()
-    Button(all_sprites)
-    Button(all_sprites, 'menu.png')
+    Button(all_sprites, 0, "quit.png", (160, 520))
+    Button(all_sprites, 'menu.png', 'menu.png', (8, 8))
     fon = pygame.transform.scale(load_image('fon_level.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
     board = Board(LEVEL)
