@@ -36,8 +36,8 @@ running = True
 draw = False
 LEVEL = 0  # нужна, чтобы запомнить, какой уровень выбрал пользователь
 
-tile_images = {'grass': load_image('grass.png'), 'tent': load_image('tent.png'), 'tree': load_image('tree.png'),
-               'none': load_image('gray.png')}
+tile_images = {2: load_image('grass.png'), 3: load_image('tent.png'),
+               'tree': load_image('tree.png'), 1: load_image('gray.png')}
 
 
 def terminate():
@@ -67,26 +67,61 @@ class Button(pygame.sprite.Sprite):
                 LEVEL = self.num
 
 
+class Cell(pygame.sprite.Sprite):
+    def __init__(self, group, image, coor):
+        super().__init__(group)
+        self.co = coor
+        self.image = image
+        self.rect = image.get_rect()
+        self.rect.x = coor[0] + 2.5
+        self.rect.y = coor[1] + 2.5
+        self.counter = 0
+
+
+class ActiveCell(pygame.sprite.Sprite):
+    def __init__(self, group, coor, cell_size):
+        super().__init__(group)
+        self.co = coor
+        self.counter = 1
+        self.cell_size = cell_size
+        self.image = pygame.transform.scale(tile_images[self.counter], (self.cell_size - 3, self.cell_size - 3))
+        self.rect = self.image.get_rect()
+        self.rect.x = coor[0] + 2.5
+        self.rect.y = coor[1] + 2.5
+
+    def update(self, *args):
+        if args and args[0].type == pygame.MOUSEBUTTONDOWN and self.rect.collidepoint(args[0].pos):
+            if self.counter == 3:
+                self.counter = 1
+            else:
+                self.counter += 1
+            self.image = tile_images[self.counter]
+
+
 class Board:
-    def __init__(self, filename):
+    def __init__(self, filename, groups):
+        self.groups = groups
         filename = "data/" + filename
         with open(filename, 'r') as mapFile:
             self.board = [line.strip() for line in mapFile]
         self.width = len(self.board[0])
         if filename == 'data/level1.txt':
             # 5 на 5
+            self.levelname = 1
             self.left = 115
             self.top = -25
             self.cell_size = 75
             draw_text('Уровень 1', (10, 450))
         elif filename == 'data/level2.txt':
             # 6 на 6
+            self.levelname = 2
             self.left = 125
             self.top = -25
             self.cell_size = 60
             draw_text('Уровень 2', (10, 450))
         elif filename == 'data/level3.txt':
             # 7 на 7
+            self.levelname = 3
             self.left = 100
             self.top = -20
             self.cell_size = 60
@@ -97,7 +132,21 @@ class Board:
             for j in range(self.width):
                 left = self.left + i * self.cell_size
                 right = self.top + j * self.cell_size - i * self.cell_size
+                if self.board[i][j] == '!' and self.levelname != 3:
+                    Cell(self.groups,
+                         pygame.transform.scale(tile_images['tree'], (self.cell_size - 3, self.cell_size - 3)),
+                         (right + left + 25, left - 25))
+                elif self.board[i][j] == '!' and self.levelname == 3:
+                    Cell(self.groups,
+                         pygame.transform.scale(tile_images['tree'], (self.cell_size - 3, self.cell_size - 3)),
+                         (right + left + 20, left - 20))
+                else:
+                    if self.levelname != 3:
+                        ActiveCell(self.groups, (right + left + 25, left - 25), self.cell_size)
+                    else:
+                        ActiveCell(self.groups, (right + left + 20, left - 20), self.cell_size)
                 pygame.draw.rect(screen, pygame.Color('black'), (left, right + left, self.cell_size, self.cell_size), 2)
+
         for i in range(len(self.board)):
             draw_text(str(self.board[i].count('@')), (-4.9 * self.top + i * self.cell_size, self.left - self.cell_size))
         for j in range(len(self.board)):
@@ -113,11 +162,23 @@ class Board:
                 if i <= (mouse_pos[1] + 30) // 30 <= i + 1 and j <= (mouse_pos[0] + 30) // 30 <= j + 1:
                     return j, i
 
+    def on_click(self, cell_coords):
+        # print(cell_coords)
+        a = screen.get_at((cell_coords[0] * 30 + 1, cell_coords[1] * 30 + 1))
+        a.update()
+        # if pygame.Color('black') == a:
+        # pygame.draw.rect(screen, pygame.Color('white'), (cell_coords[0] * 30 + 1, cell_coords[1] * 30 + 1, 28, 28))
+        # else:
+        # pygame.draw.rect(screen, pygame.Color('black'), (cell_coords[0] * 30 + 1, cell_coords[1] * 30 + 1, 28, 28))
+
+    def get_click(self, mouse_pos):
+        cell = self.get_cell(mouse_pos)
+        if cell is not None:
+            self.on_click(cell)
+
 
 def start_screen():
     global LEVEL
-    # fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
-    # screen.blit(fon, (0, 0))
     screen.fill(fon_color)
     draw_text('Палатки', (63, 48), 58, 'red')
     draw_text('и', (63, 286), 58)
@@ -153,11 +214,10 @@ def game():
     global LEVEL, running
     screen.fill(fon_color)
     all_sprites = pygame.sprite.Group()
+    cells = pygame.sprite.Group()
     Button(all_sprites, 0, "quit.png", (160, 520))
     Button(all_sprites, 'menu.png', 'menu.png', (8, 8))
-    # fon = pygame.transform.scale(load_image('fon_level.jpg'), (WIDTH, HEIGHT))
-    # screen.blit(fon, (0, 0))
-    board = Board(LEVEL)
+    board = Board(LEVEL, cells)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -167,13 +227,14 @@ def game():
                     button.update(event)
                 if LEVEL == 0:
                     return
-                    # pos = pygame.mouse.get_pos()
-            # pressed = pygame.mouse.get_pressed()
-            # if pressed[0]:
-            #    board.get_click(pos)
-        # pressed = False
+            #    pos = pygame.mouse.get_pos()
+            #    pressed = pygame.mouse.get_pressed()
+            #    if pressed[0]:
+            #        board.get_click(pos, event)
+            #    pressed = False
         board.render()
         all_sprites.draw(screen)
+        cells.draw(screen)
         pygame.display.flip()
 
 
