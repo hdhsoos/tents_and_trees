@@ -28,8 +28,9 @@ FPS = 50
 pygame.init()
 size = WIDTH, HEIGHT = 600, 600
 screen = pygame.display.set_mode(size)
-screen.fill(pygame.Color('#d5ffd9'))
-# очень красивый светло-зелёный (бледно-салатовый) цвет :)
+fon_color = pygame.Color('#d5ffd9')
+shadow_color = pygame.Color('#a9f0b0')
+screen.fill(fon_color)
 clock = pygame.time.Clock()
 running = True
 draw = False
@@ -49,6 +50,8 @@ class Button(pygame.sprite.Sprite):
         super().__init__(group)
         self.num = num
         self.image = load_image(image_name)
+        sizes = self.image.get_size()
+        pygame.draw.rect(screen, shadow_color, (coor[0] + 10, coor[1] + 10, sizes[0], sizes[1]), 0)
         self.rect = self.image.get_rect()
         self.rect.x = coor[0]
         self.rect.y = coor[1]
@@ -115,7 +118,7 @@ def start_screen():
     global LEVEL
     # fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
     # screen.blit(fon, (0, 0))
-    screen.fill(pygame.Color('#d5ffd9'))
+    screen.fill(fon_color)
     draw_text('Палатки', (63, 48), 58, 'red')
     draw_text('и', (63, 286), 58)
     draw_text('деревья', (63, 350), 58, '#00ce05')
@@ -148,11 +151,12 @@ def start_screen():
 
 def game():
     global LEVEL, running
+    screen.fill(fon_color)
     all_sprites = pygame.sprite.Group()
     Button(all_sprites, 0, "quit.png", (160, 520))
     Button(all_sprites, 'menu.png', 'menu.png', (8, 8))
-    fon = pygame.transform.scale(load_image('fon_level.jpg'), (WIDTH, HEIGHT))
-    screen.blit(fon, (0, 0))
+    # fon = pygame.transform.scale(load_image('fon_level.jpg'), (WIDTH, HEIGHT))
+    # screen.blit(fon, (0, 0))
     board = Board(LEVEL)
     while running:
         for event in pygame.event.get():
