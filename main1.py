@@ -36,8 +36,8 @@ running = True
 draw = False
 LEVEL = 0  # нужна, чтобы запомнить, какой уровень выбрал пользователь
 
-tile_images = {2: load_image('grass.png'), 3: load_image('tent.png'),
-               'tree': load_image('tree.png'), 1: load_image('gray.png')}
+tile_images = {'grass': load_image('grass.png'), 'tent': load_image('tent.png'),
+               'tree': load_image('tree.png'), 'none': load_image('gray.png')}
 
 
 def terminate():
@@ -75,27 +75,32 @@ class Cell(pygame.sprite.Sprite):
         self.rect = image.get_rect()
         self.rect.x = coor[0] + 2.5
         self.rect.y = coor[1] + 2.5
-        self.counter = 0
+        # self.counter = 0
 
 
 class ActiveCell(pygame.sprite.Sprite):
     def __init__(self, group, coor, cell_size):
         super().__init__(group)
         self.co = coor
-        self.counter = 1
         self.cell_size = cell_size
-        self.image = pygame.transform.scale(tile_images[self.counter], (self.cell_size - 3, self.cell_size - 3))
+        self.counter = 0
+        self.sprites = [pygame.transform.scale(tile_images['none'], (self.cell_size - 3, self.cell_size - 3)),
+                        pygame.transform.scale(tile_images['grass'], (self.cell_size - 3, self.cell_size - 3)),
+                        pygame.transform.scale(tile_images['tent'], (self.cell_size - 10, self.cell_size - 10))]
+        self.image = self.sprites[self.counter]
         self.rect = self.image.get_rect()
         self.rect.x = coor[0] + 2.5
         self.rect.y = coor[1] + 2.5
 
-    def update(self, *args):
-        if args and args[0].type == pygame.MOUSEBUTTONDOWN and self.rect.collidepoint(args[0].pos):
-            if self.counter == 3:
-                self.counter = 1
+    def update(self, coor):
+        # self.image = None
+        if coor[0] >= self.co[0] and coor[0] <= self.co[0] + self.cell_size and coor[1] >= self.co[1] and self.co[1] +\
+                self.cell_size >= coor[1]:
+            if self.counter == 2:
+                self.counter = 0
             else:
                 self.counter += 1
-            self.image = tile_images[self.counter]
+        self.image = self.sprites[self.counter]
 
 
 class Board:
@@ -105,6 +110,7 @@ class Board:
         with open(filename, 'r') as mapFile:
             self.board = [line.strip() for line in mapFile]
         self.width = len(self.board[0])
+        self.copy = self.board[:]
         if filename == 'data/level1.txt':
             # 5 на 5
             self.levelname = 1
@@ -162,19 +168,10 @@ class Board:
                 if i <= (mouse_pos[1] + 30) // 30 <= i + 1 and j <= (mouse_pos[0] + 30) // 30 <= j + 1:
                     return j, i
 
-    def on_click(self, cell_coords):
-        # print(cell_coords)
-        a = screen.get_at((cell_coords[0] * 30 + 1, cell_coords[1] * 30 + 1))
-        a.update()
-        # if pygame.Color('black') == a:
-        # pygame.draw.rect(screen, pygame.Color('white'), (cell_coords[0] * 30 + 1, cell_coords[1] * 30 + 1, 28, 28))
-        # else:
-        # pygame.draw.rect(screen, pygame.Color('black'), (cell_coords[0] * 30 + 1, cell_coords[1] * 30 + 1, 28, 28))
-
     def get_click(self, mouse_pos):
-        cell = self.get_cell(mouse_pos)
-        if cell is not None:
-            self.on_click(cell)
+        for el in self.groups:
+            el.update(mouse_pos)
+        self.groups.draw(screen)
 
 
 def start_screen():
@@ -218,6 +215,7 @@ def game():
     Button(all_sprites, 0, "quit.png", (160, 520))
     Button(all_sprites, 'menu.png', 'menu.png', (8, 8))
     board = Board(LEVEL, cells)
+    board.render()
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -227,15 +225,12 @@ def game():
                     button.update(event)
                 if LEVEL == 0:
                     return
-            #    pos = pygame.mouse.get_pos()
-            #    pressed = pygame.mouse.get_pressed()
-            #    if pressed[0]:
-            #        board.get_click(pos, event)
-            #    pressed = False
-        board.render()
-        all_sprites.draw(screen)
-        cells.draw(screen)
-        pygame.display.flip()
+                pos = pygame.mouse.get_pos()
+                if pygame.mouse.get_pressed()[0]:
+                    board.get_click(pos)
+            all_sprites.draw(screen)
+            cells.draw(screen)
+            pygame.display.flip()
 
 
 while running:
