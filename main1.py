@@ -53,8 +53,11 @@ def terminate():
 
 
 # чтобы не загружать одно и то же изображение каждый раз, когда создаём кнопку, используем библиотеку
-all_buttons_images = {'menu.png': load_image('menu.png'), 'level1.txt': load_image("level1.png"),
-                      'level2.txt': load_image("level2.png"), 'level3.txt': load_image("level3.png"),
+all_buttons_images = {'menu.png': load_image('menu.png'),
+                      'level1.txt': pygame.transform.scale(load_image("level1.png"), (110, 110)),
+                      'level2.txt': pygame.transform.scale(load_image("level2.png"), (110, 110)),
+                      'level3.txt': pygame.transform.scale(load_image("level3.png"), (110, 110)),
+                      'level4.txt': pygame.transform.scale(load_image("level4.png"), (110, 110)),
                       0: load_image("quit.png")}
 
 
@@ -83,7 +86,7 @@ class Button(pygame.sprite.Sprite):
                 LEVEL = 0
                 # при нажатии на кнопку выхода в меню, меняем глобальную переменную
                 # см. строку 272-273
-            elif self.num in ('level1.txt', 'level2.txt', 'level3.txt'):
+            elif self.num in ('level1.txt', 'level2.txt', 'level3.txt', 'level4.txt'):
                 LEVEL = self.num
                 # при нажатии на кнопку уровня, меняем глобальную переменную
                 # см. строки 246-247
@@ -179,11 +182,18 @@ class Board:
             self.top = -25
             self.cell_size = 60
             draw_text('Уровень 2', (10, 450))
-        elif filename == 'data/level3.txt':
+        elif filename == 'data/level4.txt':
             # 7 на 7
             self.levelname = 3
             self.left = 100
             self.top = -20
+            self.cell_size = 60
+            draw_text('Уровень 4', (10, 450))
+        elif filename == 'data/level3.txt':
+            # 6 на 6
+            self.levelname = 2
+            self.left = 125
+            self.top = -25
             self.cell_size = 60
             draw_text('Уровень 3', (10, 450))
 
@@ -256,7 +266,7 @@ def start_screen():
     draw_text('Палатки', (63, 48), 58, 'red')
     draw_text('и', (63, 286), 58)
     draw_text('деревья', (63, 350), 58, '#00ce05')
-    draw_text('made by maria andreeva', (565, 203), 22)
+    draw_text('made by maria andreeva', (550, 195), 22)
     rules = ['Вам нужно расположить по одной палатке рядом с ', 'каждым деревом. Она должна соприкасаться с ним по ',
              'вертикали или горизонтали. Цифры показывают число ', 'палаток в строке или колонке. Палатки не могут ',
              'соприкасаться даже по диагонали.']
@@ -265,10 +275,11 @@ def start_screen():
         draw_text(el, (x, 20), 23)
         x += 25
     sprites_start_screen = pygame.sprite.Group()
-    Button(sprites_start_screen, 'level1.txt', (18, 310))
-    Button(sprites_start_screen, 'level2.txt', (217, 310))
-    Button(sprites_start_screen, 'level3.txt', (413, 310))
-    Button(sprites_start_screen, 0, (160, 520))
+    Button(sprites_start_screen, 'level1.txt', (18, 320))
+    Button(sprites_start_screen, 'level2.txt', (167, 320))
+    Button(sprites_start_screen, 'level3.txt', (316, 320))
+    Button(sprites_start_screen, 'level4.txt', (465, 320))
+    Button(sprites_start_screen, 0, (160, 500))
     sprites_start_screen.draw(screen)
     # создаём и рисуем кнопки
     while True:
