@@ -319,27 +319,27 @@ def start_screen():
     # глобальная она, потому что используется в функции game(), а в этой функции меняется
     # далее идёт создание изображения и текста
     screen.fill(fon_color)
-    draw_text('Палатки', (60, 48), 58, 'red')
-    draw_text('и', (60, 286), 58)
-    draw_text('деревья', (60, 350), 58, '#00ce05')
-    # draw_text('made by maria andreeva', (550, 195), 22)
+    draw_text('Палатки', (50, 48), 58, 'red')
+    draw_text('и', (50, 286), 58)
+    draw_text('деревья', (50, 350), 58, '#00ce05')
+    # draw_text('made by maria andreeva', (570, 190), 22)
     rules = ['Вам нужно расположить по одной палатке рядом с ', 'каждым деревом. Она должна соприкасаться с ним по ',
              'вертикали или горизонтали. Цифры показывают число ', 'палаток в строке или колонке. Палатки не могут ',
              'соприкасаться даже по диагонали.']
-    x = 130  # координата первой фразы
+    x = 120  # координата первой фразы
     for el in rules:
         draw_text(el, (x, 20), 23)
         x += 25
     sprites_start_screen = pygame.sprite.Group()
-    Button(sprites_start_screen, 'level1.txt', (18, 270))
-    Button(sprites_start_screen, 'level2.txt', (167, 270))
-    Button(sprites_start_screen, 'level3.txt', (316, 270))
-    Button(sprites_start_screen, 'level4.txt', (465, 270))
-    Button(sprites_start_screen, 'level5.txt', (18, 400))
-    Button(sprites_start_screen, 'level6.txt', (167, 400))
-    Button(sprites_start_screen, 'level7.txt', (316, 400))
-    Button(sprites_start_screen, 'level8.txt', (465, 400))
-    Button(sprites_start_screen, 0, (160, 530))
+    Button(sprites_start_screen, 'level1.txt', (18, 260))
+    Button(sprites_start_screen, 'level2.txt', (167, 260))
+    Button(sprites_start_screen, 'level3.txt', (316, 260))
+    Button(sprites_start_screen, 'level4.txt', (465, 260))
+    Button(sprites_start_screen, 'level5.txt', (18, 390))
+    Button(sprites_start_screen, 'level6.txt', (167, 390))
+    Button(sprites_start_screen, 'level7.txt', (316, 390))
+    Button(sprites_start_screen, 'level8.txt', (465, 390))
+    Button(sprites_start_screen, 0, (150, 520))
     sprites_start_screen.draw(screen)
     # создаём и рисуем кнопки
     while True:
