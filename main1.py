@@ -37,10 +37,13 @@ clock = pygame.time.Clock()
 running = True
 # существует для работы циклов
 draw = False
+WIN = False
+# проверка победы
 LEVEL = 0  # нужна, чтобы запомнить, какой уровень выбрал пользователь
 
 tile_images = {'grass': load_image('grass.png'), 'tent': load_image('tent.png'),
-               'tree': load_image('tree.png'), 'none': load_image('gray.png')}
+               'tree': load_image('tree.png'), 'none': load_image('gray.png'),
+               'wrong_tent': load_image('wrong_tent.png')}
 
 
 def terminate():
@@ -96,6 +99,9 @@ class Cell(pygame.sprite.Sprite):
         self.rect.x = coor[0] + 2.5
         self.rect.y = coor[1] + 2.5
 
+    def check(self, *other):
+        pass
+
 
 class ActiveCell(pygame.sprite.Sprite):
     # пустая клетка/с травой/с палаткой (изменяется при нажатии)
@@ -108,7 +114,8 @@ class ActiveCell(pygame.sprite.Sprite):
         self.sprites = [pygame.transform.scale(tile_images['none'], (self.cell_size - 3, self.cell_size - 3)),
                         pygame.transform.scale(tile_images['grass'], (self.cell_size - 3, self.cell_size - 3)),
                         pygame.transform.scale(tile_images['tent'], (self.cell_size - 10, self.cell_size - 10)), '.',
-                        '#', '@']
+                        '#', '@',
+                        pygame.transform.scale(tile_images['wrong_tent'], (self.cell_size - 3, self.cell_size - 3))]
         self.image = self.sprites[self.counter]
         self.rect = self.image.get_rect()
         self.rect.x = coor[0] + 2.5
@@ -130,6 +137,12 @@ class ActiveCell(pygame.sprite.Sprite):
             self.board[self.i] = self.board[self.i][:self.j] + self.sprites[self.counter + 3] + self.board[self.i][
                                                                                                 (self.j + 1):]
             self.image = self.sprites[self.counter]
+
+    def check(self, board):
+        if self.board[self.i][self.j] == '@' and board[self.i][self.j] != '@':
+            self.image = self.sprites[-1]
+        if self.board[self.i][self.j] == '@' and board[self.i][self.j] == '@':
+            self.image = self.sprites[2]
 
 
 class Board:
@@ -213,9 +226,14 @@ class Board:
         for el in self.cells:
             el.update(mouse_pos)
         self.cells.draw(screen)
+        self.check()
 
     def check(self):
-        pass
+        global WIN
+        for el in self.cells:
+            el.check(self.board)
+        if self.copy == self.board:
+            WIN = True
 
 
 def start_screen():
@@ -227,7 +245,7 @@ def start_screen():
     draw_text('Палатки', (63, 48), 58, 'red')
     draw_text('и', (63, 286), 58)
     draw_text('деревья', (63, 350), 58, '#00ce05')
-    draw_text('made by mashaandreeva', (565, 203), 22)
+    draw_text('made by mariaandreeva', (565, 203), 22)
     rules = ['Вам нужно расположить по одной палатке рядом с ', 'каждым деревом. Она должна соприкасаться с ним по ',
              'вертикали или горизонтали. Цифры показывают число ', 'палаток в строке или колонке. Палатки не могут ',
              'соприкасаться даже по диагонали.']
@@ -278,8 +296,12 @@ def game():
                     button.update(event)
                 if LEVEL == 0:
                     return
-                # если переменная LEVEL изменилась (нажата кнопка "назад", мы выходим из функции
-                # цикл (268 строка) начинает свою работу повторно, с функции start_screen()
+                    # если переменная LEVEL изменилась (нажата кнопка "назад"), мы выходим из функции
+                    # цикл (268 строка) начинает свою работу повторно, с функции start_screen()
+                if WIN:
+                    return
+                    # если переменная WIN изменилась (уровень пройден), мы выходим из функции
+                    # сразу после этого начинает свою работу функция winner()
                 pos = pygame.mouse.get_pos()
                 if pygame.mouse.get_pressed()[0]:
                     board.get_click(pos)
@@ -287,8 +309,33 @@ def game():
             pygame.display.flip()
 
 
+def winner():
+    global WIN
+    screen.fill(fon_color)
+    WIN = False
+    draw_text('Вы победили!', (250, 130), 56)
+    winner_sprites = pygame.sprite.Group()
+    Button(winner_sprites, 'menu.png', (250, 320))
+    winner_sprites.draw(screen)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for button in winner_sprites:
+                    button.update(event)
+                if LEVEL == 0:
+                    return
+                # если переменная LEVEL изменилась (нажата кнопка "назад"), мы выходим из функции
+                # цикл (268 строка) начинает свою работу повторно, с функции start_screen()
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 while running:
     start_screen()
     # начальный экран с ссылками на три уровня
     game()
     # один из уровней
+    if WIN:
+        winner()
