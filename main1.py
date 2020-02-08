@@ -1,7 +1,7 @@
 import pygame, sys, os
 
 
-# очень нужные функции: для загрузки изобрвжения и для написания текста
+# очень нужные функции: для загрузки изображения и для написания текста
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname).convert()
@@ -120,6 +120,7 @@ class ActiveCell(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = coor[0] + 2.5
         self.rect.y = coor[1] + 2.5
+        self.num = num
         # координаты отличаются от coor на 2.5, чтобы не залезать на рамки
         self.i = num[1]
         self.j = num[2]
@@ -139,10 +140,9 @@ class ActiveCell(pygame.sprite.Sprite):
             self.image = self.sprites[self.counter]
 
     def check(self, board):
+        # если у пользователя палатка, а в ответе не палатка заменяем image
         if self.board[self.i][self.j] == '@' and board[self.i][self.j] != '@':
             self.image = self.sprites[-1]
-        if self.board[self.i][self.j] == '@' and board[self.i][self.j] == '@':
-            self.image = self.sprites[2]
 
 
 class Board:
@@ -164,7 +164,7 @@ class Board:
                     res += '.'
             self.copy.append(res)
         # копия нужна, чтобы при проверке сравнивать нынешнее поле и окончательный результат
-        # далее индвидуальные параметры для каждого размера
+        # далее индвидуальные параметры для каждого размера таблицы
         if filename == 'data/level1.txt':
             # 5 на 5
             self.levelname = 1
@@ -190,9 +190,11 @@ class Board:
     def render(self):
         for i in range(self.width):
             for j in range(self.width):
+                # создаём таблицу, добавляем спрайты клеток
                 left = self.left + i * self.cell_size
                 right = self.top + j * self.cell_size - i * self.cell_size
                 if self.board[i][j] == '!' and self.levelname != 3:
+                    # отдельный класс для дерева, отдельное оформление третьего уровня
                     Cell(self.cells,
                          pygame.transform.scale(tile_images['tree'], (self.cell_size - 3, self.cell_size - 3)),
                          (right + left + 25, left - 25))
@@ -201,15 +203,20 @@ class Board:
                          pygame.transform.scale(tile_images['tree'], (self.cell_size - 3, self.cell_size - 3)),
                          (right + left + 20, left - 20))
                 else:
+                    # отдельный класс для кликабельных клеток, отдельное оформление третьего уровня
                     if self.levelname != 3:
                         ActiveCell(self.cells, (right + left + 25, left - 25), self.cell_size, (self.copy, i, j))
                     else:
                         ActiveCell(self.cells, (right + left + 20, left - 20), self.cell_size, (self.copy, i, j))
+                # рисуем сетку
                 pygame.draw.rect(screen, pygame.Color('black'), (left, right + left, self.cell_size, self.cell_size), 2)
 
         for i in range(len(self.board)):
+            # пишем числа по вертикали (считаем палатки в каждом ряду)
             draw_text(str(self.board[i].count('@')), (-4.9 * self.top + i * self.cell_size, self.left - self.cell_size))
         for j in range(len(self.board)):
+            # пишем числа по горизонтали
+            # counter нужен, чтобы пройтись по каждому столбцу
             counter = 0
             for i in range(len(self.board)):
                 if self.board[i][j] == '@':
@@ -223,15 +230,19 @@ class Board:
                     return j, i
 
     def get_click(self, mouse_pos):
+        # принимаем нажатие и обновляем (?) каждую клетку
         for el in self.cells:
             el.update(mouse_pos)
+        self.check()  # проводим проверку на победу
         self.cells.draw(screen)
-        self.check()
 
     def check(self):
+        # собственно, проверка на победу
         global WIN
+        # переменная, чтобы при случае всё изменить и завершить уровень
         for el in self.cells:
             el.check(self.board)
+        # проводим проверку в каждом спрайте
         if self.copy == self.board:
             WIN = True
 
@@ -339,3 +350,4 @@ while running:
     # один из уровней
     if WIN:
         winner()
+        # окно с поздравлением в случае победы
