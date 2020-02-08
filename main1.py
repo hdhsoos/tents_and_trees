@@ -59,6 +59,9 @@ all_buttons_images = {'menu.png': load_image('menu.png'),
                       'level3.txt': pygame.transform.scale(load_image("level3.png"), (110, 110)),
                       'level4.txt': pygame.transform.scale(load_image("level4.png"), (110, 110)),
                       'level5.txt': pygame.transform.scale(load_image("level5.png"), (110, 110)),
+                      'level6.txt': pygame.transform.scale(load_image("level6.png"), (110, 110)),
+                      'level7.txt': pygame.transform.scale(load_image("level7.png"), (110, 110)),
+                      'level8.txt': pygame.transform.scale(load_image("level8.png"), (110, 110)),
                       0: load_image("quit.png")}
 
 
@@ -87,7 +90,8 @@ class Button(pygame.sprite.Sprite):
                 LEVEL = 0
                 # при нажатии на кнопку выхода в меню, меняем глобальную переменную
                 # см. строку 272-273
-            elif self.num in ('level1.txt', 'level2.txt', 'level3.txt', 'level4.txt', 'level5.txt'):
+            elif self.num in ('level1.txt', 'level2.txt', 'level3.txt', 'level4.txt', 'level5.txt',
+                              'level6.txt', 'level7.txt', 'level8.txt'):
                 LEVEL = self.num
                 # при нажатии на кнопку уровня, меняем глобальную переменную
                 # см. строки 246-247
@@ -176,34 +180,52 @@ class Board:
             self.top = -25
             self.cell_size = 75
             draw_text('Уровень 1', (10, 450))
-        elif filename == 'data/level2.txt':
+        elif filename in ('data/level2.txt', 'data/level3.txt'):
             # 6 на 6
-            self.levelname = 2
-            self.left = 125
-            self.top = -25
-            self.cell_size = 60
-            draw_text('Уровень 2', (10, 450))
-        elif filename == 'data/level4.txt':
+            if filename == 'data/level2.txt':
+                self.levelname = 2
+                draw_text('Уровень 2', (10, 450))
+                self.left = 120
+                self.top = -25
+                self.cell_size = 65
+            elif filename == 'data/level3.txt':
+                self.levelname = 3
+                draw_text('Уровень 3', (10, 450))
+                self.left = 125
+                self.top = -20
+                self.cell_size = 65
+
+        elif filename in ('data/level4.txt', 'data/level5.txt'):
             # 7 на 7
-            self.levelname = 3
+            if filename == 'data/level4.txt':
+                self.levelname = 4
+                draw_text('Уровень 4', (10, 450))
+            elif filename == 'data/level5.txt':
+                self.levelname = 5
+                draw_text('Уровень 5', (10, 450))
             self.left = 100
             self.top = -20
             self.cell_size = 60
-            draw_text('Уровень 4', (10, 450))
-        elif filename == 'data/level3.txt':
-            # 6 на 6
-            self.levelname = 2
-            self.left = 125
-            self.top = -25
-            self.cell_size = 60
-            draw_text('Уровень 3', (10, 450))
-        elif filename == 'data/level5.txt':
-            # 7 на 7
-            self.levelname = 3
-            self.left = 100
+
+        elif filename in ('data/level6.txt', 'data/level7.txt'):
+            # 8 на 8
+            if filename == 'data/level6.txt':
+                self.levelname = 6
+                draw_text('Уровень 6', (10, 450))
+            elif filename == 'data/level7.txt':
+                self.levelname = 7
+                draw_text('Уровень 7', (10, 450))
+            self.left = 90
             self.top = -20
-            self.cell_size = 60
-            draw_text('Уровень 5', (10, 450))
+            self.cell_size = 55
+
+        elif filename in ('data/level8.txt'):
+            # 9 на 9
+            self.levelname = 8
+            draw_text('Уровень 8', (10, 450))
+            self.left = 80
+            self.top = -25
+            self.cell_size = 50
 
     def render(self):
         for i in range(self.width):
@@ -211,27 +233,46 @@ class Board:
                 # создаём таблицу, добавляем спрайты клеток
                 left = self.left + i * self.cell_size
                 right = self.top + j * self.cell_size - i * self.cell_size
-                if self.board[i][j] == '!' and self.levelname != 3:
-                    # отдельный класс для дерева, отдельное оформление третьего уровня
+                if self.board[i][j] == '!' and self.levelname not in (3, 4, 5, 6, 7):
+                    # отдельный класс для дерева, отдельное оформление для разных размеров таблиц
                     Cell(self.cells,
                          pygame.transform.scale(tile_images['tree'], (self.cell_size - 3, self.cell_size - 3)),
                          (right + left + 25, left - 25))
-                elif self.board[i][j] == '!' and self.levelname == 3:
+                elif self.board[i][j] == '!' and (self.levelname in range(3, 8)):
                     Cell(self.cells,
                          pygame.transform.scale(tile_images['tree'], (self.cell_size - 3, self.cell_size - 3)),
                          (right + left + 20, left - 20))
+                elif self.board[i][j] == '!' and (self.levelname == 8):
+                    Cell(self.cells,
+                         pygame.transform.scale(tile_images['tree'], (self.cell_size - 3, self.cell_size - 3)),
+                         (right + left + 30, left - 30))
                 else:
-                    # отдельный класс для кликабельных клеток, отдельное оформление третьего уровня
-                    if self.levelname != 3:
+                    # отдельный класс для кликабельных клеток, отдельное оформление для разных размеров таблиц
+                    if self.levelname not in (3, 4, 5, 6, 7):
                         ActiveCell(self.cells, (right + left + 25, left - 25), self.cell_size, (self.copy, i, j))
                     else:
                         ActiveCell(self.cells, (right + left + 20, left - 20), self.cell_size, (self.copy, i, j))
                 # рисуем сетку
                 pygame.draw.rect(screen, pygame.Color('black'), (left, right + left, self.cell_size, self.cell_size), 2)
 
-        for i in range(len(self.board)):
-            # пишем числа по вертикали (считаем палатки в каждом ряду)
-            draw_text(str(self.board[i].count('@')), (-4.9 * self.top + i * self.cell_size, self.left - self.cell_size))
+        if self.levelname == 3:
+            for i in range(len(self.board)):
+                # пишем числа по вертикали (считаем палатки в каждом ряду)
+                draw_text(str(self.board[i].count('@')),
+                          (-5.9 * self.top + i * self.cell_size, self.left - self.cell_size + 25))
+        elif self.levelname == 6 or self.levelname == 7:
+            for i in range(len(self.board)):
+                # пишем числа по вертикали (считаем палатки в каждом ряду)
+                draw_text(str(self.board[i].count('@')),
+                          (-4 * self.top + i * self.cell_size, self.left - self.cell_size + 35))
+        elif self.levelname == 8:
+            for i in range(len(self.board)):
+                draw_text(str(self.board[i].count('@')),
+                          (-2.7 * self.top + i * self.cell_size, self.left - self.cell_size + 15))
+        else:
+            for i in range(len(self.board)):
+                draw_text(str(self.board[i].count('@')),
+                          (-4.9 * self.top + i * self.cell_size, self.left - self.cell_size + 25))
         for j in range(len(self.board)):
             # пишем числа по горизонтали
             # counter нужен, чтобы пройтись по каждому столбцу
@@ -239,7 +280,14 @@ class Board:
             for i in range(len(self.board)):
                 if self.board[i][j] == '@':
                     counter += 1
-            draw_text(str(counter), (self.left - self.cell_size, -5 * self.top + j * self.cell_size + 25))
+            if self.levelname == 3:
+                draw_text(str(counter), (self.left - self.cell_size, -6 * self.top + j * self.cell_size + 30))
+            elif self.levelname == 6 or self.levelname == 7:
+                draw_text(str(counter), (self.left - self.cell_size, -6 * self.top + j * self.cell_size - 10))
+            elif self.levelname == 8:
+                draw_text(str(counter), (self.left - self.cell_size, -6 * self.top + j * self.cell_size - 50))
+            else:
+                draw_text(str(counter), (self.left - self.cell_size, -5 * self.top + j * self.cell_size + 25))
 
     def get_cell(self, mouse_pos):
         for i in range(self.height):
@@ -278,7 +326,7 @@ def start_screen():
     rules = ['Вам нужно расположить по одной палатке рядом с ', 'каждым деревом. Она должна соприкасаться с ним по ',
              'вертикали или горизонтали. Цифры показывают число ', 'палаток в строке или колонке. Палатки не могут ',
              'соприкасаться даже по диагонали.']
-    x = 140  # координата первой фразы
+    x = 130  # координата первой фразы
     for el in rules:
         draw_text(el, (x, 20), 23)
         x += 25
@@ -288,6 +336,9 @@ def start_screen():
     Button(sprites_start_screen, 'level3.txt', (316, 270))
     Button(sprites_start_screen, 'level4.txt', (465, 270))
     Button(sprites_start_screen, 'level5.txt', (18, 400))
+    Button(sprites_start_screen, 'level6.txt', (167, 400))
+    Button(sprites_start_screen, 'level7.txt', (316, 400))
+    Button(sprites_start_screen, 'level8.txt', (465, 400))
     Button(sprites_start_screen, 0, (160, 530))
     sprites_start_screen.draw(screen)
     # создаём и рисуем кнопки
@@ -311,7 +362,7 @@ def game():
     screen.fill(fon_color)
     all_sprites = pygame.sprite.Group()
     cells = pygame.sprite.Group()
-    Button(all_sprites, 0, (160, 520))
+    Button(all_sprites, 0, (160, 530))
     Button(all_sprites, 'menu.png', (8, 8))
     all_sprites.draw(screen)
     # создаём и рисуем кнопки
