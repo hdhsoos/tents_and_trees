@@ -30,9 +30,9 @@ pygame.init()
 size = WIDTH, HEIGHT = 600, 600
 screen = pygame.display.set_mode(size)
 fon_color = pygame.Color('#d5ffd9')
-# цвет единого для всей игры фона
+# единый цвет для всего фона в игре
 shadow_color = pygame.Color('#a9f0b0')
-# цвет единого для всех кнопок теней
+# единый цвет всех кнопок
 clock = pygame.time.Clock()
 running = True
 # существует для работы циклов
@@ -42,8 +42,13 @@ WIN = False
 LEVEL = 0  # нужна, чтобы запомнить, какой уровень выбрал пользователь
 
 tile_images = {'grass': load_image('grass.png'), 'tent': load_image('tent.png'),
-               'tree': load_image('tree.png'), 'none': load_image('gray.png'),
+               'none': load_image('gray.png'),
                'wrong_tent': load_image('wrong_tent.png')}
+
+all_trees_images = {0: load_image('tree.png'), 1: load_image('tree_1.png'), 2: load_image('tree_2.png'),
+                    3: load_image('tree_3.png'), 4: load_image('tree_4.png'), 5: load_image('tree_5.png'),
+                    6: load_image('tree_6.png'), 7: load_image('tree_7.png'), 8: load_image('tree_8.png'),
+                    9: load_image('tree_9.png'), 10: load_image('tree_10.png')}
 
 
 def terminate():
@@ -62,7 +67,8 @@ all_buttons_images = {'menu.png': load_image('menu.png'),
                       'level6.txt': pygame.transform.scale(load_image("level6.png"), (110, 110)),
                       'level7.txt': pygame.transform.scale(load_image("level7.png"), (110, 110)),
                       'level8.txt': pygame.transform.scale(load_image("level8.png"), (110, 110)),
-                      0: load_image("quit.png")}
+                      0: load_image("quit.png"),
+                      'change.png': pygame.transform.scale(load_image('change.png'), (50, 50))}
 
 
 class Button(pygame.sprite.Sprite):
@@ -74,7 +80,8 @@ class Button(pygame.sprite.Sprite):
         # по типу кнопки находим в библиотеке all_buttons_images соответствующее изображение
         sizes = self.image.get_size()
         # sizes нужно, чтобы тень была того же размера, что и изображение
-        pygame.draw.rect(screen, shadow_color, (coor[0] + 10, coor[1] + 10, sizes[0], sizes[1]), 0)
+        if self.num != 'change.png':
+            pygame.draw.rect(screen, shadow_color, (coor[0] + 10, coor[1] + 10, sizes[0], sizes[1]), 0)
         # рисуем тень
         self.rect = self.image.get_rect()
         self.rect.x = coor[0]
@@ -95,6 +102,8 @@ class Button(pygame.sprite.Sprite):
                 LEVEL = self.num
                 # при нажатии на кнопку уровня, меняем глобальную переменную
                 # см. строки 246-247
+            elif self.num == 'change.png':
+                args[-1].change()
 
 
 class Cell(pygame.sprite.Sprite):
@@ -109,6 +118,15 @@ class Cell(pygame.sprite.Sprite):
 
     def check(self, *other):
         pass
+
+    def change(self, counter, levelname, cell_size):
+        if levelname not in (3, 4, 5, 6, 7):
+            # отдельный класс для дерева, отдельное оформление для разных размеров таблиц
+            self.image = pygame.transform.scale(all_trees_images[counter], (cell_size - 3, cell_size - 3))
+        elif levelname in range(3, 8):
+            self.image = pygame.transform.scale(all_trees_images[counter], (cell_size - 3, cell_size - 3))
+        elif levelname == 8:
+            self.image = pygame.transform.scale(all_trees_images[counter], (cell_size - 3, cell_size - 3))
 
 
 class ActiveCell(pygame.sprite.Sprite):
@@ -152,10 +170,15 @@ class ActiveCell(pygame.sprite.Sprite):
         if self.board[self.i][self.j] == '@' and board[self.i][self.j] != '@':
             self.image = self.sprites[-1]
 
+    def change(self, *args):
+        pass
+
 
 class Board:
     def __init__(self, filename, groups):
         self.cells = groups
+        self.counter = 0
+        # нужен, чтобы менять дизайн деревьев
         filename = "data/" + filename
         with open(filename, 'r') as mapFile:
             self.board = [line.strip() for line in mapFile]
@@ -236,15 +259,15 @@ class Board:
                 if self.board[i][j] == '!' and self.levelname not in (3, 4, 5, 6, 7):
                     # отдельный класс для дерева, отдельное оформление для разных размеров таблиц
                     Cell(self.cells,
-                         pygame.transform.scale(tile_images['tree'], (self.cell_size - 3, self.cell_size - 3)),
+                         pygame.transform.scale(all_trees_images[0], (self.cell_size - 3, self.cell_size - 3)),
                          (right + left + 25, left - 25))
                 elif self.board[i][j] == '!' and (self.levelname in range(3, 8)):
                     Cell(self.cells,
-                         pygame.transform.scale(tile_images['tree'], (self.cell_size - 3, self.cell_size - 3)),
+                         pygame.transform.scale(all_trees_images[0], (self.cell_size - 3, self.cell_size - 3)),
                          (right + left + 20, left - 20))
                 elif self.board[i][j] == '!' and (self.levelname == 8):
                     Cell(self.cells,
-                         pygame.transform.scale(tile_images['tree'], (self.cell_size - 3, self.cell_size - 3)),
+                         pygame.transform.scale(all_trees_images[0], (self.cell_size - 3, self.cell_size - 3)),
                          (right + left + 30, left - 30))
                 else:
                     # отдельный класс для кликабельных клеток, отдельное оформление для разных размеров таблиц
@@ -312,6 +335,14 @@ class Board:
         if self.copy == self.board:
             WIN = True
 
+    def change(self):
+        if self.counter == 10:
+            self.counter = 0
+        else:
+            self.counter += 1
+        for el in self.cells:
+            el.change(self.counter, self.levelname, self.cell_size)
+
 
 def start_screen():
     global LEVEL
@@ -322,7 +353,9 @@ def start_screen():
     draw_text('Палатки', (50, 48), 58, 'red')
     draw_text('и', (50, 286), 58)
     draw_text('деревья', (50, 350), 58, '#00ce05')
+    # специальный зелёный цвет
     # draw_text('made by maria andreeva', (570, 190), 22)
+    # мне не понравилось, как выглядит подпись после добавления ещё пяти уровней
     rules = ['Вам нужно расположить по одной палатке рядом с ', 'каждым деревом. Она должна соприкасаться с ним по ',
              'вертикали или горизонтали. Цифры показывают число ', 'палаток в строке или колонке. Палатки не могут ',
              'соприкасаться даже по диагонали.']
@@ -364,6 +397,7 @@ def game():
     cells = pygame.sprite.Group()
     Button(all_sprites, 0, (160, 530))
     Button(all_sprites, 'menu.png', (8, 8))
+    Button(all_sprites, 'change.png', (30, 520))
     all_sprites.draw(screen)
     # создаём и рисуем кнопки
     board = Board(LEVEL, cells)
@@ -375,7 +409,7 @@ def game():
                 terminate()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 for button in all_sprites:
-                    button.update(event)
+                    button.update(event, board)
                 if LEVEL == 0:
                     return
                     # если переменная LEVEL изменилась (нажата кнопка "назад"), мы выходим из функции
