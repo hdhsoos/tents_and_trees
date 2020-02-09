@@ -48,7 +48,10 @@ tile_images = {'grass': load_image('grass.png'), 'tent': load_image('tent.png'),
 all_trees_images = {0: load_image('tree.png'), 1: load_image('tree_1.png'), 2: load_image('tree_2.png'),
                     3: load_image('tree_3.png'), 4: load_image('tree_4.png'), 5: load_image('tree_5.png'),
                     6: load_image('tree_6.png'), 7: load_image('tree_7.png'), 8: load_image('tree_8.png'),
-                    9: load_image('tree_9.png'), 10: load_image('tree_10.png')}
+                    9: load_image('tree_9.png'), 10: load_image('tree_10.png'), 11: load_image('tree_11.png'),
+                    12: load_image('tree_12.png'), 13: load_image('tree_13.png'), 14: load_image('tree_14.png'),
+                    15: load_image('tree_15.png'), 16: load_image('tree_16.png'), 17: load_image('tree_17.png'),
+                    18: load_image('tree_18.png'), 19: load_image('tree_19.png')}
 
 
 def terminate():
@@ -336,7 +339,7 @@ class Board:
             WIN = True
 
     def change(self):
-        if self.counter == 10:
+        if self.counter == 19:
             self.counter = 0
         else:
             self.counter += 1
