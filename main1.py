@@ -223,7 +223,7 @@ class Board:
             # 9 на 9
             self.levelname = 8
             draw_text('Уровень 8', (10, 450))
-            self.left = 80
+            self.left = 90
             self.top = -25
             self.cell_size = 50
 
@@ -268,7 +268,7 @@ class Board:
         elif self.levelname == 8:
             for i in range(len(self.board)):
                 draw_text(str(self.board[i].count('@')),
-                          (-2.7 * self.top + i * self.cell_size, self.left - self.cell_size + 15))
+                          (-3 * self.top + i * self.cell_size, self.left - self.cell_size + 20))
         else:
             for i in range(len(self.board)):
                 draw_text(str(self.board[i].count('@')),
@@ -285,7 +285,7 @@ class Board:
             elif self.levelname == 6 or self.levelname == 7:
                 draw_text(str(counter), (self.left - self.cell_size, -6 * self.top + j * self.cell_size - 10))
             elif self.levelname == 8:
-                draw_text(str(counter), (self.left - self.cell_size, -6 * self.top + j * self.cell_size - 50))
+                draw_text(str(counter), (self.left - self.cell_size, -6 * self.top + j * self.cell_size - 42))
             else:
                 draw_text(str(counter), (self.left - self.cell_size, -5 * self.top + j * self.cell_size + 25))
 
@@ -339,7 +339,7 @@ def start_screen():
     Button(sprites_start_screen, 'level6.txt', (167, 390))
     Button(sprites_start_screen, 'level7.txt', (316, 390))
     Button(sprites_start_screen, 'level8.txt', (465, 390))
-    Button(sprites_start_screen, 0, (150, 520))
+    Button(sprites_start_screen, 0, (160, 530))
     sprites_start_screen.draw(screen)
     # создаём и рисуем кнопки
     while True:
