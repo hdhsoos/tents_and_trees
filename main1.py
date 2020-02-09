@@ -40,6 +40,7 @@ draw = False
 WIN = False
 # проверка победы
 LEVEL = 0  # нужна, чтобы запомнить, какой уровень выбрал пользователь
+CHANGE = None # нужна, чтобы запомнить, какое дерево выбрал пользователь
 
 tile_images = {'grass': load_image('grass.png'), 'tent': load_image('tent.png'),
                'none': load_image('gray.png'),
@@ -70,8 +71,7 @@ all_buttons_images = {'menu.png': load_image('menu.png'),
                       'level6.txt': pygame.transform.scale(load_image("level6.png"), (110, 110)),
                       'level7.txt': pygame.transform.scale(load_image("level7.png"), (110, 110)),
                       'level8.txt': pygame.transform.scale(load_image("level8.png"), (110, 110)),
-                      0: load_image("quit.png"),
-                      'change.png': pygame.transform.scale(load_image('change.png'), (50, 50))}
+                      'quit': load_image("quit.png")}
 
 
 class Button(pygame.sprite.Sprite):
@@ -79,21 +79,23 @@ class Button(pygame.sprite.Sprite):
         super().__init__(group)
         self.num = num
         # переменная, необходимая, чтобы определить тип кнопки
-        self.image = all_buttons_images[self.num]
+        if self.num not in all_trees_images:
+            self.image = all_buttons_images[self.num]
+        else:
+            self.image = all_trees_images[self.num]
         # по типу кнопки находим в библиотеке all_buttons_images соответствующее изображение
         sizes = self.image.get_size()
         # sizes нужно, чтобы тень была того же размера, что и изображение
-        if self.num != 'change.png':
-            pygame.draw.rect(screen, shadow_color, (coor[0] + 10, coor[1] + 10, sizes[0], sizes[1]), 0)
+        pygame.draw.rect(screen, shadow_color, (coor[0] + 10, coor[1] + 10, sizes[0], sizes[1]), 0)
         # рисуем тень
         self.rect = self.image.get_rect()
         self.rect.x = coor[0]
         self.rect.y = coor[1]
 
     def update(self, *args):
-        global LEVEL
+        global LEVEL, CHANGE
         if args and args[0].type == pygame.MOUSEBUTTONDOWN and self.rect.collidepoint(args[0].pos):
-            if self.num == 0:
+            if self.num == 'quit':
                 terminate()
                 # при нажатии на кнопку "выйти из игры"
             elif self.num == 'menu.png':
@@ -105,8 +107,8 @@ class Button(pygame.sprite.Sprite):
                 LEVEL = self.num
                 # при нажатии на кнопку уровня, меняем глобальную переменную
                 # см. строки 246-247
-            elif self.num == 'change.png':
-                args[-1].change()
+            elif self.num in all_trees_images:
+                CHANGE = self.num
 
 
 class Cell(pygame.sprite.Sprite):
@@ -121,15 +123,6 @@ class Cell(pygame.sprite.Sprite):
 
     def check(self, *other):
         pass
-
-    def change(self, counter, levelname, cell_size):
-        if levelname not in (3, 4, 5, 6, 7):
-            # отдельный класс для дерева, отдельное оформление для разных размеров таблиц
-            self.image = pygame.transform.scale(all_trees_images[counter], (cell_size - 3, cell_size - 3))
-        elif levelname in range(3, 8):
-            self.image = pygame.transform.scale(all_trees_images[counter], (cell_size - 3, cell_size - 3))
-        elif levelname == 8:
-            self.image = pygame.transform.scale(all_trees_images[counter], (cell_size - 3, cell_size - 3))
 
 
 class ActiveCell(pygame.sprite.Sprite):
@@ -173,14 +166,10 @@ class ActiveCell(pygame.sprite.Sprite):
         if self.board[self.i][self.j] == '@' and board[self.i][self.j] != '@':
             self.image = self.sprites[-1]
 
-    def change(self, *args):
-        pass
-
 
 class Board:
     def __init__(self, filename, groups):
         self.cells = groups
-        self.counter = 0
         # нужен, чтобы менять дизайн деревьев
         filename = "data/" + filename
         with open(filename, 'r') as mapFile:
@@ -254,6 +243,7 @@ class Board:
             self.cell_size = 50
 
     def render(self):
+        global CHANGE
         for i in range(self.width):
             for j in range(self.width):
                 # создаём таблицу, добавляем спрайты клеток
@@ -262,15 +252,15 @@ class Board:
                 if self.board[i][j] == '!' and self.levelname not in (3, 4, 5, 6, 7):
                     # отдельный класс для дерева, отдельное оформление для разных размеров таблиц
                     Cell(self.cells,
-                         pygame.transform.scale(all_trees_images[0], (self.cell_size - 3, self.cell_size - 3)),
+                         pygame.transform.scale(all_trees_images[CHANGE], (self.cell_size - 3, self.cell_size - 3)),
                          (right + left + 25, left - 25))
                 elif self.board[i][j] == '!' and (self.levelname in range(3, 8)):
                     Cell(self.cells,
-                         pygame.transform.scale(all_trees_images[0], (self.cell_size - 3, self.cell_size - 3)),
+                         pygame.transform.scale(all_trees_images[CHANGE], (self.cell_size - 3, self.cell_size - 3)),
                          (right + left + 20, left - 20))
                 elif self.board[i][j] == '!' and (self.levelname == 8):
                     Cell(self.cells,
-                         pygame.transform.scale(all_trees_images[0], (self.cell_size - 3, self.cell_size - 3)),
+                         pygame.transform.scale(all_trees_images[CHANGE], (self.cell_size - 3, self.cell_size - 3)),
                          (right + left + 30, left - 30))
                 else:
                     # отдельный класс для кликабельных клеток, отдельное оформление для разных размеров таблиц
@@ -338,14 +328,6 @@ class Board:
         if self.copy == self.board:
             WIN = True
 
-    def change(self):
-        if self.counter == 19:
-            self.counter = 0
-        else:
-            self.counter += 1
-        for el in self.cells:
-            el.change(self.counter, self.levelname, self.cell_size)
-
 
 def start_screen():
     global LEVEL
@@ -375,7 +357,7 @@ def start_screen():
     Button(sprites_start_screen, 'level6.txt', (167, 390))
     Button(sprites_start_screen, 'level7.txt', (316, 390))
     Button(sprites_start_screen, 'level8.txt', (465, 390))
-    Button(sprites_start_screen, 0, (160, 530))
+    Button(sprites_start_screen, 'quit', (160, 530))
     sprites_start_screen.draw(screen)
     # создаём и рисуем кнопки
     while True:
@@ -393,14 +375,46 @@ def start_screen():
         clock.tick(FPS)
 
 
+def change():
+    global CHANGE
+    screen.fill(fon_color)
+    change_sprites = pygame.sprite.Group()
+    draw_text('Выберите дерево', (50, 200))
+    Button(change_sprites, 'quit', (160, 530))
+    Button(change_sprites, 'menu.png', (8, 8))
+    for i in range(5):
+        Button(change_sprites, i, (110 + i * 80, 100))
+    for i in range(5, 10):
+        Button(change_sprites, i, (110 + (i - 5) * 80, 200))
+    for i in range(10, 15):
+        Button(change_sprites, i, (110 + (i - 10) * 80, 300))
+    for i in range(15, 20):
+        Button(change_sprites, i, (110 + (i - 15) * 80, 400))
+    change_sprites.draw(screen)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for button in change_sprites:
+                    button.update(event)
+                if LEVEL == 0:
+                    return
+                if CHANGE != None:
+                    return
+                # если переменная LEVEL изменилась (нажата кнопка "назад"), мы выходим из функции
+                # цикл (268 строка) начинает свою работу повторно, с функции start_screen()
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 def game():
     global LEVEL
     screen.fill(fon_color)
     all_sprites = pygame.sprite.Group()
     cells = pygame.sprite.Group()
-    Button(all_sprites, 0, (160, 530))
+    Button(all_sprites, 'quit', (160, 530))
     Button(all_sprites, 'menu.png', (8, 8))
-    Button(all_sprites, 'change.png', (30, 520))
     all_sprites.draw(screen)
     # создаём и рисуем кнопки
     board = Board(LEVEL, cells)
@@ -454,6 +468,10 @@ def winner():
 while running:
     start_screen()
     # начальный экран с ссылками на три уровня
+    CHANGE = None
+    # меняем переменную перед запуском экрана выбора
+    change()
+    # экран выбора дерева
     game()
     # один из уровней
     if WIN:
