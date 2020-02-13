@@ -40,7 +40,7 @@ draw = False
 WIN = False
 # проверка победы
 LEVEL = 0  # нужна, чтобы запомнить, какой уровень выбрал пользователь
-CHANGE = None # нужна, чтобы запомнить, какое дерево выбрал пользователь
+CHANGE = None  # нужна, чтобы запомнить, какое дерево выбрал пользователь
 
 tile_images = {'grass': load_image('grass.png'), 'tent': load_image('tent.png'),
                'none': load_image('gray.png'),
