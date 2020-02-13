@@ -25,6 +25,12 @@ def draw_text(text, coor, size=25, color='black'):
     screen.blit(string_rendered, intro_rect)
 
 
+def terminate():
+    pygame.quit()
+    sys.exit()
+    # стандартная функция выхода из программы
+
+
 FPS = 50
 pygame.init()
 size = WIDTH, HEIGHT = 600, 600
@@ -42,10 +48,12 @@ WIN = False
 LEVEL = 0  # нужна, чтобы запомнить, какой уровень выбрал пользователь
 CHANGE = None  # нужна, чтобы запомнить, какое дерево выбрал пользователь
 
+# чтобы не загружать одно и то же изображение каждый раз, когда создаём клетку, используем библиотеку
 tile_images = {'grass': load_image('grass.png'), 'tent': load_image('tent.png'),
                'none': load_image('gray.png'),
                'wrong_tent': load_image('wrong_tent.png')}
 
+# чтобы не загружать одно и то же изображение каждый раз, когда меняем дерево, используем библиотеку
 all_trees_images = {0: load_image('tree.png'), 1: load_image('tree_1.png'), 2: load_image('tree_2.png'),
                     3: load_image('tree_3.png'), 4: load_image('tree_4.png'), 5: load_image('tree_5.png'),
                     6: load_image('tree_6.png'), 7: load_image('tree_7.png'), 8: load_image('tree_8.png'),
@@ -53,13 +61,6 @@ all_trees_images = {0: load_image('tree.png'), 1: load_image('tree_1.png'), 2: l
                     12: load_image('tree_12.png'), 13: load_image('tree_13.png'), 14: load_image('tree_14.png'),
                     15: load_image('tree_15.png'), 16: load_image('tree_16.png'), 17: load_image('tree_17.png'),
                     18: load_image('tree_18.png'), 19: load_image('tree_19.png')}
-
-
-def terminate():
-    pygame.quit()
-    sys.exit()
-    # стандартная функция выхода из программы
-
 
 # чтобы не загружать одно и то же изображение каждый раз, когда создаём кнопку, используем библиотеку
 all_buttons_images = {'menu.png': load_image('menu.png'),
