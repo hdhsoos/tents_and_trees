@@ -47,6 +47,7 @@ WIN = False
 # проверка победы
 LEVEL = 0  # нужна, чтобы запомнить, какой уровень выбрал пользователь
 CHANGE = None  # нужна, чтобы запомнить, какое дерево выбрал пользователь
+COUNTER = 0  # счётчик ходов
 
 # чтобы не загружать одно и то же изображение каждый раз, когда создаём клетку, используем библиотеку
 tile_images = {'grass': load_image('grass.png'), 'tent': load_image('tent.png'),
@@ -151,6 +152,7 @@ class ActiveCell(pygame.sprite.Sprite):
         # переменная num хранит в себе изменяемый список и положение клетки в нём
 
     def update(self, coor):
+        global COUNTER
         # проверка на то, что нажатие попало на кнопку
         if self.co[0] <= coor[0] <= self.co[0] + self.cell_size and self.co[1] + \
                 self.cell_size >= coor[1] >= self.co[1]:
@@ -161,6 +163,7 @@ class ActiveCell(pygame.sprite.Sprite):
             self.board[self.i] = self.board[self.i][:self.j] + self.sprites[self.counter + 3] + self.board[self.i][
                                                                                                 (self.j + 1):]
             self.image = self.sprites[self.counter]
+            COUNTER += 1
 
     def check(self, board):
         # если у пользователя палатка, а в ответе не палатка заменяем image
@@ -195,18 +198,15 @@ class Board:
             self.left = 115
             self.top = -25
             self.cell_size = 75
-            draw_text('Уровень 1', (10, 450))
         elif filename in ('data/level2.txt', 'data/level3.txt'):
             # 6 на 6
             if filename == 'data/level2.txt':
                 self.levelname = 2
-                draw_text('Уровень 2', (10, 450))
                 self.left = 120
                 self.top = -25
                 self.cell_size = 65
             elif filename == 'data/level3.txt':
                 self.levelname = 3
-                draw_text('Уровень 3', (10, 450))
                 self.left = 125
                 self.top = -20
                 self.cell_size = 65
@@ -215,10 +215,8 @@ class Board:
             # 7 на 7
             if filename == 'data/level4.txt':
                 self.levelname = 4
-                draw_text('Уровень 4', (10, 450))
             elif filename == 'data/level5.txt':
                 self.levelname = 5
-                draw_text('Уровень 5', (10, 450))
             self.left = 100
             self.top = -20
             self.cell_size = 60
@@ -227,10 +225,8 @@ class Board:
             # 8 на 8
             if filename == 'data/level6.txt':
                 self.levelname = 6
-                draw_text('Уровень 6', (10, 450))
             elif filename == 'data/level7.txt':
                 self.levelname = 7
-                draw_text('Уровень 7', (10, 450))
             self.left = 90
             self.top = -20
             self.cell_size = 55
@@ -238,10 +234,11 @@ class Board:
         elif filename in ('data/level8.txt'):
             # 9 на 9
             self.levelname = 8
-            draw_text('Уровень 8', (10, 450))
             self.left = 90
             self.top = -25
             self.cell_size = 50
+        draw_text('Уровень {}'.format(self.levelname), (10, 450))
+        draw_text('Количество ходов: ' + str(COUNTER), (10, 170))
 
     def render(self):
         global CHANGE
@@ -279,7 +276,6 @@ class Board:
                           (-5.9 * self.top + i * self.cell_size, self.left - self.cell_size + 25))
         elif self.levelname == 6 or self.levelname == 7:
             for i in range(len(self.board)):
-                # пишем числа по вертикали (считаем палатки в каждом ряду)
                 draw_text(str(self.board[i].count('@')),
                           (-4 * self.top + i * self.cell_size, self.left - self.cell_size + 35))
         elif self.levelname == 8:
@@ -304,7 +300,7 @@ class Board:
             elif self.levelname == 8:
                 draw_text(str(counter), (self.left - self.cell_size, -6 * self.top + j * self.cell_size - 42))
             else:
-                draw_text(str(counter), (self.left - self.cell_size, -5 * self.top + j * self.cell_size + 25))
+                draw_text(str(counter), (self.left - self.cell_size + 10, -5 * self.top + j * self.cell_size + 25))
 
     def get_cell(self, mouse_pos):
         for i in range(self.height):
@@ -318,6 +314,8 @@ class Board:
             el.update(mouse_pos)
         self.check()  # проводим проверку на победу
         self.cells.draw(screen)
+        pygame.draw.rect(screen, fon_color, (165, 10, 275, 30), 0)
+        draw_text('Количество ходов: ' + str(COUNTER), (10, 170))
 
     def check(self):
         # собственно, проверка на победу
